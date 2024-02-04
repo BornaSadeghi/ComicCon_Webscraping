@@ -8,17 +8,12 @@ from selenium.webdriver.common.by import By
 
 # Disable geolocation
 from selenium.webdriver.chrome.options import Options
-# options = webdriver.ChromeOptions()
-# prefs = {"profile.default_content_setting_values.geolocation" :2}
-# options.add_experimental_option("prefs",prefs)
-# driver = webdriver.Chrome(options=options)
-
 
 chrome_options = Options()
 # chrome_options.add_experimental_option("detach", True)
 chrome_options.add_argument("--headless=new")
 driver = webdriver.Chrome(options=chrome_options)
-
+# driver = webdriver.Chrome()
 
 base_url = "https://fancons.com/events/schedule.php?loc="
 # Start with North America
@@ -26,28 +21,31 @@ base_url = "https://fancons.com/events/schedule.php?loc="
 con_data = []
 
 continents = {'na': "North America", 'eu': "Europe", 'af': "Africa", 'as': "Asia", 'oc': "Oceania"}
+types = ['comic', 'horror', 'tv']
 
 for continent in continents.keys():
-    driver.get(base_url+continent)
+    for type in types:
 
-    con_list_table = driver.find_element(By.ID, "ConListTable")
-    con_list_container = con_list_table.find_element(By.TAG_NAME, 'tbody')
-    con_list_rows = con_list_container.find_elements(By.TAG_NAME, 'tr')
+        driver.get(base_url+continent+'&'+type)
 
-    for row in con_list_rows:
-        column = row.find_elements(By.TAG_NAME, 'td')
-        
-        con_link = column[0].find_element(By.TAG_NAME, 'a').get_attribute('href')
-        con_name = column[0].text
+        con_list_table = driver.find_element(By.ID, "ConListTable")
+        con_list_container = con_list_table.find_element(By.TAG_NAME, 'tbody')
+        con_list_rows = con_list_container.find_elements(By.TAG_NAME, 'tr')
 
-        con_date = column[1].text
+        for row in con_list_rows:
+            column = row.find_elements(By.TAG_NAME, 'td')
+            
+            con_link = column[0].find_element(By.TAG_NAME, 'a').get_attribute('href')
+            con_name = column[0].text
 
-        loc_and_venue = column[2].text.split('\n')
-        
-        con_venue = loc_and_venue[0]
-        con_location = loc_and_venue[1]
+            con_date = column[1].text
 
-        con_data.append({'link': con_link, 'name': con_name, 'date': con_date, 'location': con_location, 'venue': con_venue, 'continent': continents[continent]})
+            loc_and_venue = column[2].text.split('\n')
+            
+            con_venue = loc_and_venue[0]
+            con_location = loc_and_venue[1]
+
+            con_data.append({'link': con_link, 'name': con_name, 'date': con_date, 'location': con_location, 'venue': con_venue, 'continent': continents[continent], 'type': type})
     
 con_data_df = pd.DataFrame(con_data)
 # print(con_data_df)
